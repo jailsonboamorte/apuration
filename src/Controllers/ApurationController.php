@@ -215,22 +215,22 @@ class ApurationController
     foreach ($cursor as $register) {
 
       $votes = (array) $register['votes'];
-//      $resultCombination = $this->processApurationForCombination($votes);
-//      $dataResult = [
-//        'apuration_id' => $idApuration,
-//        'votes' => $votes,
-//        'proportion' => [
-//          'A' => ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $participants * 100, 2)],
-//          'B' => ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $participants * 100, 2)],
-//          'total' => $participants
-//        ],
-//        'combination' => [
-//          'A' => ['sum' => $resultCombination['A'], 'percentage' => round($resultCombination['A'] / $resultCombination['sum_combinations'] * 100, 2)],
-//          'B' => ['sum' => $resultCombination['B'], 'percentage' => round($resultCombination['B'] / $resultCombination['sum_combinations'] * 100, 2)],
-//          'total' => $resultCombination['sum_combinations']
-//        ]
-//      ];
-//      $result->add($dataResult);
+      $resultCombination = $this->processApurationForCombination($votes);
+      $dataResult = [
+        'apuration_id' => $idApuration,
+        'votes' => $votes,
+        'proportion' => [
+          'A' => ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $participants * 100, 2)],
+          'B' => ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $participants * 100, 2)],
+          'total' => $participants
+        ],
+        'combination' => [
+          'A' => ['sum' => $resultCombination['A'], 'percentage' => round($resultCombination['A'] / $resultCombination['sum_combinations'] * 100, 2)],
+          'B' => ['sum' => $resultCombination['B'], 'percentage' => round($resultCombination['B'] / $resultCombination['sum_combinations'] * 100, 2)],
+          'total' => $resultCombination['sum_combinations']
+        ]
+      ];
+      $result->add($dataResult);
     }
     return $idApuration;
   }
@@ -244,14 +244,32 @@ class ApurationController
       $proportion = $result['proportion'];
       $combination = $result['combination'];
 
-      echo "[$k]\n";
 //  echo implode('-', array_keys((array) $result['votes'])) . "\n";
 //  echo implode('-', (array) $result['votes']) . "\n\n";
-      echo "----------Proportion: \n";
-      echo "A: {$proportion['A']['sum']} - {$proportion['A']['percentage']}% / B: {$proportion['B']['sum']} - {$proportion['B']['percentage']}% Total: {$proportion['total']}\n ";
-      echo "\n---------Combination: \n";
-      echo "A: {$combination['A']['sum']} - {$combination['A']['percentage']}% / B: {$combination['B']['sum']} - {$combination['B']['percentage']}% Total: {$combination['total']} \n";
-      echo "\n\n===================================================================\n\n";
+
+      $winnerP = ($proportion['A']['percentage'] > $proportion['B']['percentage']) ? 'A' : 'B';
+      $winnerP = ($proportion['B']['percentage'] == $proportion['A']['percentage']) ? 'ND' : $winnerP;
+
+      $winnerC = ($combination['A']['percentage'] > $combination['B']['percentage']) ? 'A' : 'B';
+      $winnerC = ($combination['B']['percentage'] == $combination['A']['percentage']) ? 'ND' : $winnerC;
+
+      $count = '[' . ($k + 1) . ']';
+      $l = "Proportion Total: {$proportion['total']}" . str_pad(' ', 60, ' ', STR_PAD_BOTH) . "Combination Total: {$combination['total']}";
+      $lenght = 120;
+
+      $color1 = $color2 = "";
+      if ($winnerC != $winnerP) {
+        $color1 = "\e[1;37;46m";
+        $color2 = "\e[0m";
+      }
+
+      echo $count . str_pad($l, $lenght, ' ', STR_PAD_BOTH) . "\n";
+      $l = "A: {$proportion['A']['percentage']}% - {$proportion['A']['sum']}   / B: {$proportion['B']['percentage']}% - {$proportion['B']['sum']} [$winnerP]"
+        . str_pad(' ', 40, ' ', STR_PAD_BOTH)
+        . "[$winnerC] A: {$combination['A']['percentage']}% - {$combination['A']['sum']} / B: {$combination['B']['percentage']}% - {$combination['B']['sum']}";
+      echo $color1 . str_pad($l, $lenght, ' ', STR_PAD_BOTH) . $color2 . "\n";
+
+      echo "\n" . str_pad('-', $lenght, '-', STR_PAD_BOTH) . "\n";
     }
   }
 

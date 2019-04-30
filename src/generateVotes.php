@@ -1,12 +1,12 @@
 <?php
 
-require_once './Vote.php';
+require_once './Models/Vote.php';
 
 
 $t1 = time();
 
 echo "\n";
-echo "################ Started in " . date('d/m/Y H:i:s', $t1);
+echo "\e[1;37;46m ################ Started in " . date('d/m/Y H:i:s', $t1) . "\e[0m";
 echo "\n\n";
 
 $length = $argv[1] ?? 4;
