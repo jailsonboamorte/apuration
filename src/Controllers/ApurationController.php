@@ -1,26 +1,28 @@
 <?php
 
 require 'vendor/autoload.php';
-require_once './Mongo.php';
-require_once './Vote.php';
-require_once './Combination.php';
+//require_once './Mongo.php';
+require_once './Models/Vote.php';
+require_once './Models/Combination.php';
+require_once './Models/Apuration.php';
+require_once './Models/Result.php';
 
-class Apuration
+class ApurationController
 {
 
-  private $length;
+  private $participants;
   private $combination;
 
   /**
    * 
-   * @param int $length
+   * @param int $participants
    * @param bool $combination 
    */
-  public function __construct(int $length, bool $combination = false)
+  public function __construct(int $participants, bool $combination = false)
   {
-    $this->length = $length;
+    $this->length = $participants;
     if ($combination) {
-      $combination = new Combination($length);
+      $combination = new Combination($participants);
       $options = ['projection' => ['_id' => 0, '0' => 1, '1' => 1, '2' => 1]];
       $filter = [];
       $this->combination = $combination->getCombinations($filter, $options);
@@ -124,9 +126,9 @@ class Apuration
     return $return;
   }
 
-  function completeNumber(string $number, int $length, int $strPad, $direction = STR_PAD_LEFT): string
+  function completeNumber(string $number, int $participants, int $strPad, $direction = STR_PAD_LEFT): string
   {
-    return str_pad($number, $length, $strPad, $direction);
+    return str_pad($number, $participants, $strPad, $direction);
   }
 
   function getPositions(string $string): array
@@ -137,9 +139,9 @@ class Apuration
     return $arrayPos;
   }
 
-  public function generateAndSaveCombinations(int $length): int
+  public function generateAndSaveCombinations(int $participants): int
   {
-    $string = str_pad(111, $length, 0, STR_PAD_LEFT);
+    $string = str_pad(111, $participants, 0, STR_PAD_LEFT);
     $this->saveCombination($string);
 
     $arrayPos = $this->getPositions($string);
@@ -162,17 +164,17 @@ class Apuration
       $part1 = $this->completeNumber(1, $pos1 + 1, 0);
       if ($arrayClose['areCloses31']) {
         $pos1--;
-        $pos2 = $length - 2; # before last position
-        $pos3 = $length - 1; # last position
+        $pos2 = $participants - 2; # before last position
+        $pos3 = $participants - 1; # last position
         $part1 = $this->completeNumber(1, ($pos1 + 1), 0);
         $part2 = $this->completeNumber(1, ($pos2 + 1) - ($pos1 + 1), 0);
-        $part3 = $this->completeNumber(1, ($length - $pos3), 0, STR_PAD_RIGHT);
+        $part3 = $this->completeNumber(1, ($participants - $pos3), 0, STR_PAD_RIGHT);
         $string = $part1 . $part2 . $part3;
 //    $string = $part3;
 //    echo "### 31 pos1: $pos1 pos2: $pos2 pos3: $pos3 string: $string \n";
       } elseif ($arrayClose['areCloses32']) {
         $pos2--;
-        $pos3 = $length - 1; # set last position
+        $pos3 = $participants - 1; # set last position
         $part1 = $this->completeNumber(1, $pos1 + 1, 0);
         $part2 = $this->completeNumber(1, ($pos2 + 1) - ($pos1 + 1), 0);
         $part3 = $this->completeNumber(1, ($pos3 + 1) - ($pos2 + 1), 0);
@@ -182,8 +184,8 @@ class Apuration
         $pos3--;
         $part1 = $this->completeNumber(1, $pos1 + 1, 0);
         $part2 = $this->completeNumber(1, ($pos2 + 1) - ($pos1 + 1), 0);
-        $part3 = $this->completeNumber(1, ($length - $pos3), 0, STR_PAD_RIGHT);
-        $dif = $length - strlen($part1 . $part2 . $part3);
+        $part3 = $this->completeNumber(1, ($participants - $pos3), 0, STR_PAD_RIGHT);
+        $dif = $participants - strlen($part1 . $part2 . $part3);
         $complement = $dif <= 0 ? '' : $this->completeNumber(0, $dif, 0);
         $string = $part1 . $part2 . $complement . $part3;
 //    echo "### RE pos1: $pos1 pos2: $pos2 pos3: $pos3 string: $string \n";
@@ -197,34 +199,60 @@ class Apuration
 
   /**
    * 
-   * @param int $length
+   * @param int $participants
    * @param int $max
    */
-  public function getApuration(int $length, int $max = 3): array
+  public function runApuration(int $participants, int $max = 3)
   {
-    $apuration = [];
-
-    $vote = new Vote($length);
+    $vote = new Vote($participants);
+    $apuration = new Apuration($participants, $max);
+    $result = new Result();
+    $dataApuration = ['number_participants' => $participants, 'limit_of_apuration' => $max];
+    $idApuration = $apuration->add($dataApuration);
     $options = ['limit' => $max, 'projection' => ['_id' => 0, 'proportion_votes' => 1, 'votes' => 1]];
     $filter = [];
     $cursor = $vote->getVotes($filter, $options);
-    $i = 0;
     foreach ($cursor as $register) {
+
       $votes = (array) $register['votes'];
-      $apuration[$i]['votes'] = $votes;
-      $apuration[$i]['proportion']['A'] = ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $length * 100, 2)];
-      $apuration[$i]['proportion']['B'] = ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $length * 100, 2)];
-      $apuration[$i]['proportion']['total'] = $length;
-
-
-      $apurationCombination = $this->processApurationForCombination($votes);
-      $apuration[$i]['combination']['A'] = ['sum' => $apurationCombination['A'], 'percentage' => round($apurationCombination['A'] / $apurationCombination['sum_combinations'] * 100, 2)];
-      $apuration[$i]['combination']['B'] = ['sum' => $apurationCombination['B'], 'percentage' => round($apurationCombination['B'] / $apurationCombination['sum_combinations'] * 100, 2)];
-      $apuration[$i]['combination']['total'] = $apurationCombination['sum_combinations'];
-
-      $i++;
+//      $resultCombination = $this->processApurationForCombination($votes);
+//      $dataResult = [
+//        'apuration_id' => $idApuration,
+//        'votes' => $votes,
+//        'proportion' => [
+//          'A' => ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $participants * 100, 2)],
+//          'B' => ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $participants * 100, 2)],
+//          'total' => $participants
+//        ],
+//        'combination' => [
+//          'A' => ['sum' => $resultCombination['A'], 'percentage' => round($resultCombination['A'] / $resultCombination['sum_combinations'] * 100, 2)],
+//          'B' => ['sum' => $resultCombination['B'], 'percentage' => round($resultCombination['B'] / $resultCombination['sum_combinations'] * 100, 2)],
+//          'total' => $resultCombination['sum_combinations']
+//        ]
+//      ];
+//      $result->add($dataResult);
     }
-    return $apuration;
+    return $idApuration;
+  }
+
+  function showResultsByIdApuration($idApuration)
+  {
+    $result = new Result();
+    $results = $result->get(['apuration_id' => $idApuration]);
+    foreach ($results as $k => $result) {
+
+      $proportion = $result['proportion'];
+      $combination = $result['combination'];
+
+      echo "[$k]\n";
+//  echo implode('-', array_keys((array) $result['votes'])) . "\n";
+//  echo implode('-', (array) $result['votes']) . "\n\n";
+      echo "----------Proportion: \n";
+      echo "A: {$proportion['A']['sum']} - {$proportion['A']['percentage']}% / B: {$proportion['B']['sum']} - {$proportion['B']['percentage']}% Total: {$proportion['total']}\n ";
+      echo "\n---------Combination: \n";
+      echo "A: {$combination['A']['sum']} - {$combination['A']['percentage']}% / B: {$combination['B']['sum']} - {$combination['B']['percentage']}% Total: {$combination['total']} \n";
+      echo "\n\n===================================================================\n\n";
+    }
   }
 
   private function processApurationForCombination(array $votes): array

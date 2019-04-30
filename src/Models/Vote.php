@@ -1,7 +1,7 @@
 <?php
 
 require 'vendor/autoload.php';
-require_once './Mongo.php';
+require_once 'Mongo.php';
 
 class Vote
 {
