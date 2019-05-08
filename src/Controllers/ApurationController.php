@@ -6,12 +6,14 @@ require_once './Models/Vote.php';
 require_once './Models/Combination.php';
 require_once './Models/Apuration.php';
 require_once './Models/Result.php';
+require_once './Models/MapVotesCombination.php';
 
 class ApurationController
 {
 
   private $participants;
   private $combination;
+  private $MapVotesCombination;
 
   /**
    * 
@@ -20,7 +22,10 @@ class ApurationController
    */
   public function __construct(int $participants, bool $combination = false)
   {
-    $this->length = $participants;
+
+    $this->participants = $participants;
+    $this->MapVotesCombination = new MapVotesCombination($participants);
+
     if ($combination) {
       $combination = new Combination($participants);
       $options = ['projection' => ['_id' => 0, '0' => 1, '1' => 1, '2' => 1]];
@@ -40,7 +45,7 @@ class ApurationController
     $array = explode('*', $string);
     foreach ($array as $combination) {
       $append = $value . $combination;
-      if (strlen($append) == $this->length) {
+      if (strlen($append) == $this->participants) {
 //        echo implode('-', str_split($append)) . "\n";
       }
       $return[] = $append;
@@ -94,7 +99,7 @@ class ApurationController
 
   private function saveCombination(string $combination): array
   {
-    $collection = 'combinations_for_' . $this->length . '_elements';
+    $collection = 'combinations_for_' . $this->participants . '_participants';
     $return = [];
     $mongo = new Mongo();
     $arrayBinare = array_filter(str_split($combination));
@@ -105,7 +110,7 @@ class ApurationController
       '_id' => $_id,
       'decimal' => $dec,
       'sum' => array_sum($arrayBinare),
-      ] + array_keys($arrayBinare);
+      ] + array_keys($arrayBinare) + array_combine(['position_0','position_1','position_2'], array_keys($arrayBinare));
     if ($hasLine) { # there is on base
       $updateResult = $mongo->updateOne($collection, ['_id' => $_id], ['$set' => $data]);
       $updateResult->getMatchedCount() == 1 ? $return['updated'] = 1 : $return['fail'] = $_id;
@@ -215,22 +220,23 @@ class ApurationController
     foreach ($cursor as $register) {
 
       $votes = (array) $register['votes'];
-      $resultCombination = $this->processApurationForCombination($votes);
-      $dataResult = [
-        'apuration_id' => $idApuration,
-        'votes' => $votes,
-        'proportion' => [
-          'A' => ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $participants * 100, 2)],
-          'B' => ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $participants * 100, 2)],
-          'total' => $participants
-        ],
-        'combination' => [
-          'A' => ['sum' => $resultCombination['A'], 'percentage' => round($resultCombination['A'] / $resultCombination['sum_combinations'] * 100, 2)],
-          'B' => ['sum' => $resultCombination['B'], 'percentage' => round($resultCombination['B'] / $resultCombination['sum_combinations'] * 100, 2)],
-          'total' => $resultCombination['sum_combinations']
-        ]
-      ];
-      $result->add($dataResult);
+      $this->generateMapVotessCombination($votes, $idApuration);
+//      $resultCombination = $this->processApurationForCombination($votes);
+//        $dataResult = [
+//          'apuration_id' => $idApuration,
+//          'votes' => $votes,
+//          'proportion' => [
+//            'A' => ['sum' => $register['proportion_votes']['A'], 'percentage' => round($register['proportion_votes']['A'] / $participants * 100, 2)],
+//            'B' => ['sum' => $register['proportion_votes']['B'], 'percentage' => round($register['proportion_votes']['B'] / $participants * 100, 2)],
+//            'total' => $participants
+//          ],
+//          'combination' => [
+//            'A' => ['sum' => $resultCombination['A'], 'percentage' => round($resultCombination['A'] / $resultCombination['sum_combinations'] * 100, 2)],
+//            'B' => ['sum' => $resultCombination['B'], 'percentage' => round($resultCombination['B'] / $resultCombination['sum_combinations'] * 100, 2)],
+//            'total' => $resultCombination['sum_combinations']
+//          ]
+//        ];
+//      $result->add($dataResult);
     }
     return $idApuration;
   }
@@ -273,17 +279,34 @@ class ApurationController
     }
   }
 
-  private function processApurationForCombination(array $votes): array
+//  private function processApurationForCombination(array $votes): array
+//  {
+//
+//    $apuration = ['A' => 0, 'B' => 0];
+//    foreach ($this->combination as $combination) {
+//      $apurationCombi = [$votes[$combination[0]], $votes[$combination[1]], $votes[$combination[2]]];
+//      $optionWinner = key((array_count_values($apurationCombi)));
+//      $apuration[$optionWinner] ++;
+//    }
+//    $apuration['sum_combinations'] = $apuration['A'] + $apuration['B'];
+//    return $apuration;
+//  }
+
+  private function generateMapVotessCombination(array $votes, $idApuration)
   {
 
-    $apuration = ['A' => 0, 'B' => 0];
+    $dataMap['apuration_id'] = $idApuration;
     foreach ($this->combination as $combination) {
-      $apurationCombi = [$votes[$combination[0]], $votes[$combination[1]], $votes[$combination[2]]];
-      $optionWinner = key((array_count_values($apurationCombi)));
-      $apuration[$optionWinner] ++;
+
+      $dataMap['apuration_id'] = $idApuration;
+      $dataMap['votes'] = [$votes[$combination[0]], $votes[$combination[1]], $votes[$combination[2]]];
+      $dataMap['sum_votes'] = array_count_values($dataMap['votes']);
+      $dataMap['qty_votes_winner'] = max($dataMap['sum_votes']);
+      $dataMap['winner'] = array_flip($dataMap['sum_votes'])[$dataMap['qty_votes_winner']];
+//      print_r($dataMap);
+      $this->MapVotesCombination->add($dataMap);
     }
-    $apuration['sum_combinations'] = $apuration['A'] + $apuration['B'];
-    return $apuration;
+//    $apuration['sum_combinations'] = $apuration['A'] + $apuration['B'];
   }
 
 }

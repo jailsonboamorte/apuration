@@ -1,6 +1,6 @@
 <?php
 
-require_once './Apuration.php';
+require_once './Controllers/ApurationController.php';
 
 
 $t1 = time();
@@ -11,7 +11,7 @@ echo "\n\n";
 
 $length = $argv[1] ?? 4;
 
-$ap = new Apuration($length);
+$ap = new ApurationController($length);
 
 $qtd = $ap->generateAndSaveCombinations($length);
 

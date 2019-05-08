@@ -18,6 +18,6 @@ $vote->generateAndSaveVotes();
 $t2 = time();
 
 echo "\n";
-echo "################ Finished in " . date('d/m/Y H:i:s', $t2) . ' ' . ($t2 - $t1) . ' seconds';
+echo "\e[1;37;46m ################ Finished in " . date('d/m/Y H:i:s', $t2) . ' ' . ($t2 - $t1) . " seconds. \e[0m";
 echo "\n";
 echo "\n";
