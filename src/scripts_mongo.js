@@ -1,10 +1,6 @@
 db.getCollection('map_votes_combinations_10_participants').mapReduce(
-        function () {
-            emit(this.winner, 1);
-        },
-        function (key, values) {
-            return Array.sum(values)
-        },
+        function () {emit(this.winner, 1);},
+        function (key, values) {return Array.sum(values)},
         {
             out: "count_groups_"
         }

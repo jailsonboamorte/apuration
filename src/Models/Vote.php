@@ -30,16 +30,15 @@ class Vote extends Model
    */
   private function saveVotes(array $votes): bool
   {
-    $mongo = new Mongo();
 
     $data = ['created' => date('Y-m-d H:i:s'), 'proportion_votes' => array_count_values($votes), 'votes' => $votes];
     foreach ($votes as $key => $value) {
       $data[$key] = $key;
       $data['vote_' . $key] = $value;
     }
-
-    $insertOneResult = $mongo->saveOne($this->colletion, $data);
-    return $insertOneResult->getInsertedCount() == 1 ? true : false;
+    
+    return $this->save($data);
+    
   }
 
   /**

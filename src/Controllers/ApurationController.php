@@ -226,8 +226,13 @@ class ApurationController
     foreach ($cursor as $register) {
       $command = "generateMapVotesCombinations('$tableVote','{$register['_id']}', '$idApuration','$tableCombination','$tableMapVotesCombinations');";
       $result = $this->MapVotesCombination->execute($command);
-      print_r($result);
-      echo $command . "\n";
+//      print_r($result->toArray()[0]['ok']);
+      if ($result->toArray()[0]['ok']) {
+//      echo $reduce . "\n";
+        $resultReduce = $this->MapVotesCombination->mapReduce($tableMapVotesCombinations, "function () {emit(this.winner, 1);}", "function (key, values) {return Array.sum(values)}", "reduce_$tableMapVotesCombinations");
+        //print_r($resultReduce);
+      }
+      //echo $command . "\n";
 //      $votes = (array) $register['votes'];
 //      $this->generateMapVotessCombination($votes, $idApuration);
 //      $resultCombination = $this->processApurationForCombination($votes);

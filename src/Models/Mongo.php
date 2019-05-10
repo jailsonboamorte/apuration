@@ -9,7 +9,7 @@ class Mongo
 
   public function __construct()
   {
-    $this->connection = new MongoDB\Client("mongodb://mongodb:27017/truetable");    
+    $this->connection = new MongoDB\Client("mongodb://mongodb:27017/truetable");
   }
 
   public function getConnection()
@@ -39,6 +39,18 @@ class Mongo
   {
     $colletionMg = $this->connection->truetable->$colletion;
     return $colletionMg->find($filter, $data);
+  }
+
+  public function command($command)
+  {
+    return $this->connection->truetable->command(['eval' => $command]);
+  }
+
+  public function mapReduce($collection, $map, $reduce, $out)
+  {
+    $map = new MongoDB\BSON\Javascript($map);
+    $reduce = new MongoDB\BSON\Javascript($reduce);
+    return $this->connection->truetable->$collection->mapReduce($map, $reduce, $out);
   }
 
 }
