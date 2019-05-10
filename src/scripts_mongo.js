@@ -10,13 +10,13 @@ db.getCollection('map_votes_combinations_10_participants').mapReduce(
         }
 )
 
-db.loadServerScripts();
+
 db.system.js.deleteOne({_id: 'generateMapVotesCombinations'});
 db.system.js.save({
     _id: "generateMapVotesCombinations",
-    value: function (idVotes, idApuration) {
-        var cursorCombinations = db.getCollection('combinations_for_10_participants').find({});
-        var votes = db.getCollection('10_votes').findOne({'_id': ObjectId(idVotes)}, {votes: 1});
+    value: function (tableVotes, idVotes, idApuration,tableCombination, tableMapVotesCombination) {
+        var cursorCombinations = db.getCollection(tableCombination).find({});
+        var votes = db.getCollection(tableVotes).findOne({'_id': ObjectId(idVotes)}, {votes: 1});
         while (cursorCombinations.hasNext()) {
 
             var cursor = cursorCombinations.next();
@@ -29,8 +29,7 @@ db.system.js.save({
                 getVote(votes.votes, position_2),
             ]
             var sumVotes = sumVotesCombination(votesCombination);
-            votesCombination.
-                    if(sumVotes['A'] > sumVotes['B']) {
+            if (sumVotes['A'] > sumVotes['B']) {
                 qty_votes_winner = sumVotes['A'];
                 winner = 'A';
             } else {
@@ -39,20 +38,20 @@ db.system.js.save({
             }
 
 
-            db.getCollection('map_votes_combinations_10_participants').insert({
+            db.getCollection(tableMapVotesCombination).insert({
                 apuration_id: idApuration,
-                votes: votesCombination,
-                sum_votes: sumVotes,
+                votes: votesCombination,                
                 winner: winner,
                 qty_votes_winner: qty_votes_winner
             })
         }
     }
-}
-);
-
+});
 db.loadServerScripts();
-generateMapVotesCombinations('5cc9b1354ca83f0038235fd2', 1);
+generateMapVotesCombinations('10_votes','5cc9b1354ca83f0038235fd2', 1,'combinations_for_10_participants','map_votes_combinations_10_participants');
+
+generateMapVotesCombinations('1000_votes','"5cbe37b3d25bf2026b1edf52"', 1,'combinations_for_1000_participants','map_votes_combinations_1000_participants');
+
 db.getCollection('combinations_for_10_participants').find({}).forEach(function (elem)
 {
     var value_0 = elem['0'];
@@ -126,3 +125,12 @@ db.system.js.save({
 db.loadServerScripts();
 
 createPositionsField('combinations_for_100_participants');
+
+
+db.system.js.deleteOne({_id: 'getVote'});
+db.system.js.save({
+    _id: "getVote",
+    value: function (votes,position) {
+        return votes[position];
+    }
+});

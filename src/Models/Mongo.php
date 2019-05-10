@@ -9,7 +9,7 @@ class Mongo
 
   public function __construct()
   {
-    $this->connection = new MongoDB\Client("mongodb://mongodb:27017/truetable");
+    $this->connection = new MongoDB\Client("mongodb://mongodb:27017/truetable");    
   }
 
   public function getConnection()

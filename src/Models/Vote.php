@@ -2,13 +2,14 @@
 
 require 'vendor/autoload.php';
 require_once 'Mongo.php';
+require_once 'Model.php';
 
-class Vote
+class Vote extends Model
 {
 
   private $lenght;
   private $options;
-  private $colletion;
+  public $colletion;
 
   /**
    * 
@@ -19,6 +20,7 @@ class Vote
     $this->lenght = $lenght;
     $this->colletion = $lenght . '_votes';
     $this->options = ['A' => 'A', 'B' => 'B'];
+    parent::__construct($this->colletion);
   }
 
   /**
@@ -35,7 +37,7 @@ class Vote
       $data[$key] = $key;
       $data['vote_' . $key] = $value;
     }
-    
+
     $insertOneResult = $mongo->saveOne($this->colletion, $data);
     return $insertOneResult->getInsertedCount() == 1 ? true : false;
   }
@@ -52,10 +54,9 @@ class Vote
     $this->saveVotes($votes);
   }
 
-  public function getVotes($filter, $options)
+  public function get($filter, $options)
   {
-    $mongo = new Mongo();
-    return $mongo->find($this->colletion, $filter, $options);
+    return $this->find($filter, $options);
   }
 
 }

@@ -17,6 +17,11 @@ class Model
     $this->colletion = $colletion;
   }
 
+  public function getCollection()
+  {
+    return $this->colletion;
+  }
+
   function save(array $data)
   {
     $mongo = new Mongo();
@@ -30,6 +35,12 @@ class Model
   {
     $mongo = new Mongo();
     return $mongo->find($this->colletion, $filter, $options);
+  }
+
+  public function execute($command)
+  {
+    $mongo = new Mongo();
+    return $mongo->command(['eval' => $command]);
   }
 
 }
