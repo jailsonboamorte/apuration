@@ -3,14 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/Models/Mongo.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/generateVotes.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/apuration.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/Models/Vote.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/scripts_mongo.js</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/Controllers/ApurationController.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/Models/Combination.php</file>
-            <file>file:/media/jailson/data2/dev/www/apuration/src/populateTableByLoop.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/Combination.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/Result.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/MapVotesCombination.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/Mongo.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/scripts_mongo.js</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/Model.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/apuration.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Controllers/ApurationController.php</file>
+            <file>file:/media/jailson/data3/dev/www/apuration/src/Models/Vote.php</file>
         </group>
     </open-files>
 </project-private>

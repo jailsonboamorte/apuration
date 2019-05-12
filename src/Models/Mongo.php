@@ -46,11 +46,11 @@ class Mongo
     return $this->connection->truetable->command(['eval' => $command]);
   }
 
-  public function mapReduce($collection, $map, $reduce, $out)
+  public function mapReduce($collection, $map, $reduce, $out, $options)
   {
     $map = new MongoDB\BSON\Javascript($map);
     $reduce = new MongoDB\BSON\Javascript($reduce);
-    return $this->connection->truetable->$collection->mapReduce($map, $reduce, $out);
+    return $this->connection->truetable->$collection->mapReduce($map, $reduce, $out, $options);
   }
 
 }

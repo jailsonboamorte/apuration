@@ -21,6 +21,11 @@ class Combination extends Model
     return iterator_to_array($this->find($filter, $options));
   }
 
+  function add(array $data)
+  {
+    return $this->save($data);
+  }
+
 }
 
 ?>

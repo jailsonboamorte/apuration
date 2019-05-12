@@ -25,32 +25,14 @@ class Vote extends Model
 
   /**
    * 
-   * @param array $votes
-   * @return bool
-   */
-  private function saveVotes(array $votes): bool
-  {
-
-    $data = ['created' => date('Y-m-d H:i:s'), 'proportion_votes' => array_count_values($votes), 'votes' => $votes];
-    foreach ($votes as $key => $value) {
-      $data[$key] = $key;
-      $data['vote_' . $key] = $value;
-    }
-    
-    return $this->save($data);
-    
-  }
-
-  /**
-   * 
    */
   public function generateAndSaveVotes()
   {
-    $votes = [];
     for ($i = 0; $i < $this->lenght; $i++) {
-      $votes[] = array_rand($this->options);
+      $data[] = array_rand($this->options);
     }
-    $this->saveVotes($votes);
+    $data = ['proportion_votes' => array_count_values($data), 'votes' => $data];
+    return $this->save($data);
   }
 
   public function get($filter, $options)
